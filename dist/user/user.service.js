@@ -50,11 +50,12 @@ let UserService = class UserService {
     }
     async getFriends({ id }) {
         try {
-            const user = await user_entity_1.User.findByPk(id);
+            const user = await this.findById(id);
             if (!user)
                 throw new exceptions_1.NotFoundException("User not found.");
+            const friendsIds = user.friends || [];
             const friends = await user_entity_1.User.findAll({
-                where: { id: user.friends },
+                where: { id: friendsIds },
             });
             return {
                 statusCode: "200",
@@ -74,8 +75,12 @@ let UserService = class UserService {
         if (!firstUser || !secondUser) {
             throw new exceptions_1.NotFoundException("User not found.");
         }
-        if ((firstUser.blocked && firstUser.blocked.includes(otherId)) ||
-            (secondUser.blocked && secondUser.blocked.includes(id))) {
+        firstUser.friends = firstUser.friends || [];
+        secondUser.friends = secondUser.friends || [];
+        firstUser.blocked = firstUser.blocked || [];
+        secondUser.blocked = secondUser.blocked || [];
+        if (firstUser.blocked.includes(otherId) ||
+            secondUser.blocked.includes(id)) {
             return {
                 status: "406",
                 message: "You cannot do this. You are blocked.",
@@ -107,11 +112,12 @@ let UserService = class UserService {
     }
     async getRequests({ id }) {
         try {
-            const user = await user_entity_1.User.findByPk(id);
+            const user = await this.findById(id);
             if (!user)
                 throw new exceptions_1.NotFoundException("User not found.");
+            const requestIds = user.requests || [];
             const requests = await user_entity_1.User.findAll({
-                where: { id: user.requests },
+                where: { id: requestIds },
             });
             return {
                 statusCode: "200",
@@ -130,6 +136,7 @@ let UserService = class UserService {
         const secondUser = await this.findById(otherId);
         if (!firstUser || !secondUser)
             throw new exceptions_1.NotFoundException("User not found.");
+        secondUser.requests = secondUser.requests || [];
         if (status) {
             if (secondUser.requests.includes(id)) {
                 return {
@@ -151,11 +158,12 @@ let UserService = class UserService {
     }
     async getBlocked({ id }) {
         try {
-            const user = await user_entity_1.User.findByPk(id);
+            const user = await this.findById(id);
             if (!user)
                 throw new exceptions_1.NotFoundException("User not found.");
+            const blockedIds = user.blocked || [];
             const blocked = await user_entity_1.User.findAll({
-                where: { id: user.blocked },
+                where: { id: blockedIds },
             });
             return {
                 statusCode: "200",
@@ -174,6 +182,7 @@ let UserService = class UserService {
         const secondUser = await this.findById(otherId);
         if (!firstUser || !secondUser)
             throw new exceptions_1.NotFoundException("User not found.");
+        firstUser.blocked = firstUser.blocked || [];
         if (status) {
             if (firstUser.blocked.includes(otherId)) {
                 return {

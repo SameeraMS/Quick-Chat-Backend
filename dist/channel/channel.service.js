@@ -60,11 +60,7 @@ let ChannelService = class ChannelService {
     async getChannelsByUser(userId) {
         try {
             const channels = await channel_entity_1.Channel.findAll({
-                where: {
-                    participants: {
-                        [sequelize_1.Op.contains]: [userId],
-                    },
-                },
+                where: sequelize_1.default.where(sequelize_1.default.fn("JSON_CONTAINS", sequelize_1.default.col("participants"), JSON.stringify(userId)), true),
                 order: [["updatedAt", "DESC"]],
                 attributes: { exclude: ["messages", "createdAt"] },
             });

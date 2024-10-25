@@ -48,11 +48,12 @@ export class UserService {
 
   async getFriends({ id }) {
     try {
-      const user = await User.findByPk(id);
+      const user = await this.findById(id);
       if (!user) throw new NotFoundException("User not found.");
 
+      const friendsIds = user.friends || []; // Default to empty array if null
       const friends = await User.findAll({
-        where: { id: user.friends }, // Fetch friends by their IDs
+        where: { id: friendsIds }, // Fetch friends by their IDs
       });
 
       return {
@@ -75,9 +76,15 @@ export class UserService {
       throw new NotFoundException("User not found.");
     }
 
+    // Initialize `friends` and `blocked` if null
+    firstUser.friends = firstUser.friends || [];
+    secondUser.friends = secondUser.friends || [];
+    firstUser.blocked = firstUser.blocked || [];
+    secondUser.blocked = secondUser.blocked || [];
+
     if (
-      (firstUser.blocked && firstUser.blocked.includes(otherId)) ||
-      (secondUser.blocked && secondUser.blocked.includes(id))
+      firstUser.blocked.includes(otherId) ||
+      secondUser.blocked.includes(id)
     ) {
       return {
         status: "406",
@@ -121,11 +128,12 @@ export class UserService {
 
   async getRequests({ id }) {
     try {
-      const user = await User.findByPk(id);
+      const user = await this.findById(id);
       if (!user) throw new NotFoundException("User not found.");
 
+      const requestIds = user.requests || []; // Default to empty array if null
       const requests = await User.findAll({
-        where: { id: user.requests }, // Fetch request senders by their IDs
+        where: { id: requestIds }, // Fetch request senders by their IDs
       });
 
       return {
@@ -146,6 +154,8 @@ export class UserService {
 
     if (!firstUser || !secondUser)
       throw new NotFoundException("User not found.");
+
+    secondUser.requests = secondUser.requests || []; // Initialize if null
 
     if (status) {
       if (secondUser.requests.includes(id)) {
@@ -172,11 +182,12 @@ export class UserService {
 
   async getBlocked({ id }) {
     try {
-      const user = await User.findByPk(id);
+      const user = await this.findById(id);
       if (!user) throw new NotFoundException("User not found.");
 
+      const blockedIds = user.blocked || []; // Default to empty array if null
       const blocked = await User.findAll({
-        where: { id: user.blocked }, // Fetch blocked users by their IDs
+        where: { id: blockedIds }, // Fetch blocked users by their IDs
       });
 
       return {
@@ -197,6 +208,8 @@ export class UserService {
 
     if (!firstUser || !secondUser)
       throw new NotFoundException("User not found.");
+
+    firstUser.blocked = firstUser.blocked || []; // Initialize if null
 
     if (status) {
       if (firstUser.blocked.includes(otherId)) {

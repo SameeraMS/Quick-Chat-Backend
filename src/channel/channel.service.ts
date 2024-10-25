@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Op } from "sequelize";
+import sequelize, { Op } from "sequelize";
 import { Message } from "src/message/message.entity";
 import { User } from "src/user/user.entity";
 import { Channel } from "./channel.entity";
@@ -63,11 +63,14 @@ export class ChannelService {
   async getChannelsByUser(userId: string) {
     try {
       const channels = await Channel.findAll({
-        where: {
-          participants: {
-            [Op.contains]: [userId],
-          },
-        },
+        where: sequelize.where(
+          sequelize.fn(
+            "JSON_CONTAINS",
+            sequelize.col("participants"),
+            JSON.stringify(userId)
+          ),
+          true
+        ),
         order: [["updatedAt", "DESC"]],
         attributes: { exclude: ["messages", "createdAt"] },
       });
